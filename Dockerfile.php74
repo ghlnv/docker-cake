@@ -1,0 +1,25 @@
+FROM php:7.4-apache
+
+# Instalação do módulo de reescrita do Apache
+RUN a2enmod rewrite
+
+# Instalação das extensões necessárias para o MySQL
+RUN docker-php-ext-install mysqli pdo_mysql
+
+# Fixes
+#RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+
+# Instalação da extensão intl
+RUN apt-get update && \
+    apt-get install -y libicu-dev && \
+    docker-php-ext-configure intl && \
+    docker-php-ext-install intl
+    
+# Instalação da extensão zip
+RUN apt-get install -y libzip-dev && \
+    docker-php-ext-install zip
+
+# Instalação do php gd
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
+    install-php-extensions gd xdebug

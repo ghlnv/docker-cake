@@ -1,0 +1,6 @@
+.env
+.password
+/node_modules
+/mysql8
+/mysql57
+*.log
