@@ -1,31 +1,37 @@
 FROM php:5.6-apache
 
-# Instalação do módulo de reescrita do Apache
+# Ativar módulo de reescrita do Apache
 RUN a2enmod rewrite
 
-# Instalação das extensões necessárias para o MySQL
+# Configurar repositórios antigos
+RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list && \
+    echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
+    apt-get update
+
+# Instalar extensões MySQL
 RUN docker-php-ext-install mysqli pdo_mysql
 
-# Fixes
-RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
-
-# Instalação da extensão intl
-RUN apt-get update && \
-    apt-get install -y libicu-dev && \
+# Instalar intl
+RUN apt-get install -y libicu-dev && \
     docker-php-ext-configure intl && \
-    docker-php-ext-install intl
+    docker-php-ext-install intl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instalação do zip
-RUN apt-get install -y libzip-dev && \
-    docker-php-ext-install zip
+# Instalar GD
+RUN apt-get update && \
+    apt-get install -y libpng-dev libjpeg62-turbo-dev libfreetype6-dev && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instalação do php gd
+# Adicionar instalador de extensões
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
-    install-php-extensions gd xdebug
+RUN chmod +x /usr/local/bin/install-php-extensions && \
+    /usr/local/bin/install-php-extensions xdebug
 
-# Instalação da extensão exif
+# Instalar exif
 RUN docker-php-ext-install exif
 
-# Instalação das extensões pcntl e sockets, se disponíveis
+# Instalar pcntl e sockets
 RUN docker-php-ext-install pcntl sockets
