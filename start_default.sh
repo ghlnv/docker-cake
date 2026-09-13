@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker start mysql57 mysql8 php74
+docker start mysql84 php74

@@ -6,20 +6,23 @@ RUN a2enmod rewrite
 # Instalação das extensões necessárias para o MySQL
 RUN docker-php-ext-install mysqli pdo_mysql
 
-# Fixes
-#RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+# Debian Bullseye arquivado
+RUN printf '%s\n' \
+    'deb http://archive.debian.org/debian bullseye main' \
+    > /etc/apt/sources.list && \
+    rm -f /etc/apt/sources.list.d/*
 
-# Instalação da extensão intl
-RUN apt-get update && \
-    apt-get install -y libicu-dev && \
+# intl + zip
+RUN apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends \
+        libicu-dev \
+        libzip-dev && \
     docker-php-ext-configure intl && \
-    docker-php-ext-install intl
-    
-# Instalação da extensão zip
-RUN apt-get install -y libzip-dev && \
-    docker-php-ext-install zip
+    docker-php-ext-install intl zip && \
+    rm -rf /var/lib/apt/lists/*
 
-# Instalação do php gd
+# gd + xdebug
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && \
+
+RUN chmod +x /usr/local/bin/install-php-extensions && \
     install-php-extensions gd xdebug
